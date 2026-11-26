@@ -53,10 +53,8 @@ jobs:
         run: |
           $path = "apps\web\next.config.ts"
           $content = Get-Content $path -Raw
-          $patched = $content.Replace(
-            "const nextConfig: NextConfig = {",
-            "const nextConfig: NextConfig = {`r`n`ttypecript: { ignoreBuildErrors: true },"
-          )
+          $insertion = "const nextConfig: NextConfig = {`n  typescript: { ignoreBuildErrors: true },"
+          $patched = $content.Replace("const nextConfig: NextConfig = {", $insertion)
           if ($patched -eq $content) { throw "Could not patch next.config.ts" }
           Set-Content -Path $path -Value $patched -NoNewline
 
