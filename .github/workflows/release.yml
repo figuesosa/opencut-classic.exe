@@ -1,0 +1,67 @@
+name: Windows release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout packaging repo
+        uses: actions/checkout@v4
+
+      - name: Checkout OpenCut Classic
+        uses: actions/checkout@v4
+        with:
+          repository: opencut-app/opencut-classic
+          path: opencut-classic
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.18
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install editor dependencies
+        working-directory: opencut-classic
+        run: bun install
+
+      - name: Build the editor
+        working-directory: opencut-classic/apps/web
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: "1"
+          DATABASE_URL: postgresql://opencut:opencut@127.0.0.1:5432/opencut
+          BETTER_AUTH_SECRET: build-time-secret
+          UPSTASH_REDIS_REST_URL: http://127.0.0.1:8079
+          UPSTASH_REDIS_REST_TOKEN: example_token
+          NEXT_PUBLIC_SITE_URL: http://127.0.0.1:4173
+          NEXT_PUBLIC_MARBLE_API_URL: https://api.marblecms.com
+          MARBLE_WORKSPACE_KEY: build-placeholder
+          FREESOUND_CLIENT_ID: build-placeholder
+          FREESOUND_API_KEY: build-placeholder
+        run: bun run build
+
+      - name: Package OpenCut.exe
+        shell: pwsh
+        run: ./scripts/package.ps1 -ClassicRoot opencut-classic -OutDir dist/OpenCut
+
+      - name: Zip the app
+        shell: pwsh
+        run: Compress-Archive -Path dist/OpenCut/* -DestinationPath dist/OpenCut-windows.zip
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "desktop-v${{ github.run_number }}" dist/OpenCut-windows.zip --repo "${{ github.repository }}" --title "OpenCut for Windows ${{ github.run_number }}" --notes "Unzip the download and run OpenCut.exe. The editor opens in its own window. Projects stay on this computer."
