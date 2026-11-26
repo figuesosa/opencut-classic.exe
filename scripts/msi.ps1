@@ -22,7 +22,12 @@ $wix = Join-Path $env:USERPROFILE ".dotnet\tools\wix.exe"
 $payload = (Resolve-Path $PayloadDir).Path
 $installer = Join-Path $PSScriptRoot "..\installer\Package.wxs"
 
-& $wix build $installer -ext WixToolset.UI.wixext -d "Version=$Version" -d "PayloadDir=$payload" -o $OutFile
+& $wix extension add WixToolset.UI.wixext/5.0.2
+if ($LASTEXITCODE -ne 0) {
+	throw "Failed to add the WiX UI extension"
+}
+
+& $wix build $installer -ext WixToolset.UI.wixext/5.0.2 -d "Version=$Version" -d "PayloadDir=$payload" -o $OutFile
 if ($LASTEXITCODE -ne 0) {
 	throw "Failed to build the MSI"
 }
