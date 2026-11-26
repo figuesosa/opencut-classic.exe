@@ -7,7 +7,10 @@ A local Windows package of OpenCut Classic. We did not develop OpenCut. This rep
 
 ## Run it
 
-Download `opencut-classic-windows.zip` from [Releases](https://github.com/figuesosa/opencut-classic.exe/releases), unzip it, and run `opencut-classic.exe`.
+Download [the latest release](https://github.com/figuesosa/opencut-classic.exe/releases).
+
+- `opencut-classic.msi` installs the app, then adds Start menu and desktop shortcuts.
+- `opencut-classic-windows.zip` is the same app without an installer. Unzip it and run `opencut-classic.exe`.
 
 You need one Chromium browser installed: Chrome, Brave, Chromium, or Edge. The editor opens in its own window. Projects stay on this computer.
 
