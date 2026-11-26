@@ -36,6 +36,17 @@ jobs:
         working-directory: opencut-classic
         run: bun install
 
+      - name: Use one Next.js install
+        working-directory: opencut-classic
+        shell: pwsh
+        run: |
+          $appNext = Join-Path (Get-Location) "apps\web\node_modules\next"
+          $rootNext = Join-Path (Get-Location) "node_modules\next"
+          if ((Test-Path $appNext) -and (Test-Path $rootNext)) {
+            Remove-Item -Recurse -Force $appNext
+            New-Item -ItemType Junction -Path $appNext -Target $rootNext | Out-Null
+          }
+
       - name: Build the editor
         working-directory: opencut-classic/apps/web
         env:
