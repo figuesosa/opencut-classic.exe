@@ -14,12 +14,17 @@ try {
 		throw "Failed to install Electron"
 	}
 	npm pkg set "version=$version"
-	npx electron-builder --win zip msi --x64 --publish never
+	npx electron-builder --win zip --x64 --publish never
 	if ($LASTEXITCODE -ne 0) {
 		throw "Failed to build the Electron app"
 	}
 } finally {
 	Pop-Location
 }
+
+& (Join-Path $PSScriptRoot "msi.ps1") `
+	-Version $version `
+	-PayloadDir (Join-Path $repoRoot "dist\release\win-unpacked") `
+	-OutFile (Join-Path $repoRoot "dist\release\opencut-classic.msi")
 
 Write-Host "Built the Electron app $version"
