@@ -78,19 +78,15 @@ jobs:
           FREESOUND_API_KEY: build-placeholder
         run: bun run build
 
-      - name: Package opencut-classic.exe
+      - name: Stage the editor
         shell: pwsh
-        run: ./scripts/package.ps1 -ClassicRoot opencut-classic -OutDir dist/opencut-classic
+        run: ./scripts/package.ps1 -ClassicRoot opencut-classic -OutDir dist/editor
 
-      - name: Zip the app
+      - name: Build the Electron app
         shell: pwsh
-        run: Compress-Archive -Path dist/opencut-classic/* -DestinationPath dist/opencut-classic-windows.zip
-
-      - name: Build the MSI
-        shell: pwsh
-        run: |
-          $version = (Get-Content VERSION -Raw).Trim()
-          ./scripts/msi.ps1 -Version $version -PayloadDir dist/opencut-classic -OutFile dist/opencut-classic.msi
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: ./scripts/electron.ps1
 
       - name: Publish the release
         env:
@@ -98,4 +94,6 @@ jobs:
         shell: pwsh
         run: |
           $version = (Get-Content VERSION -Raw).Trim()
-          gh release create "v$version" dist/opencut-classic-windows.zip dist/opencut-classic.msi --repo "${{ github.repository }}" --title "opencut-classic.exe $version" --notes-file RELEASE_NOTES.md
+          $files = @(Get-ChildItem dist/release -File | Where-Object { $_.Extension -in ".zip", ".msi" } | ForEach-Object { $_.FullName })
+          if ($files.Count -eq 0) { throw "No installer files were produced." }
+          gh release create "v$version" @files --repo "${{ github.repository }}" --title "opencut-classic.exe $version" --notes-file RELEASE_NOTES.md

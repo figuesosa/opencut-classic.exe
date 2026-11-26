@@ -21,22 +21,16 @@ if (Test-Path $OutDir) {
 }
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
-Copy-Item -Recurse $standalone (Join-Path $OutDir "resources")
-$staticDest = Join-Path $OutDir "resources\apps\web\.next\static"
+Copy-Item -Path (Join-Path $standalone "*") -Destination $OutDir -Recurse
+$staticDest = Join-Path $OutDir "apps\web\.next\static"
 New-Item -ItemType Directory -Force -Path (Split-Path $staticDest) | Out-Null
 Copy-Item -Recurse $static $staticDest
 if (Test-Path $public) {
-	Copy-Item -Recurse $public (Join-Path $OutDir "resources\apps\web\public")
+	$publicDest = Join-Path $OutDir "apps\web\public"
+	if (Test-Path $publicDest) {
+		Remove-Item -Recurse -Force $publicDest
+	}
+	Copy-Item -Recurse $public $publicDest
 }
 
-$node = (Get-Command node).Source
-Copy-Item $node (Join-Path $OutDir "node.exe")
-
-$bun = (Get-Command bun).Source
-$launcher = Join-Path $PSScriptRoot "..\src\launcher.ts"
-& $bun build $launcher --compile --outfile (Join-Path $OutDir "opencut-classic.exe")
-if ($LASTEXITCODE -ne 0) {
-	throw "Failed to compile opencut-classic.exe"
-}
-
-Write-Host "Packaged $(Join-Path $OutDir 'opencut-classic.exe')"
+Write-Host "Staged the editor in $OutDir"

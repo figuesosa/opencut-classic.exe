@@ -1,0 +1,43 @@
+{
+  "name": "opencut-classic",
+  "version": "0.1.2",
+  "private": true,
+  "main": "main.js",
+  "description": "Local Windows package of OpenCut Classic. We did not develop OpenCut.",
+  "author": "figuesosa",
+  "build": {
+    "appId": "exe.opencut.classic",
+    "productName": "opencut-classic",
+    "directories": {
+      "output": "../dist/release"
+    },
+    "files": [
+      "main.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../dist/editor",
+        "to": "editor"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "zip",
+          "arch": ["x64"]
+        },
+        {
+          "target": "msi",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "opencut-classic.${ext}"
+    },
+    "msi": {
+      "oneClick": false,
+      "perMachine": true,
+      "shortcutName": "opencut-classic"
+    }
+  }
+}

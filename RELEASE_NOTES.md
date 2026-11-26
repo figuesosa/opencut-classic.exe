@@ -1,6 +1,6 @@
-Run opencut-classic.msi for a normal install with Start menu and desktop shortcuts. opencut-classic-windows.zip is the same app without an installer.
+opencut-classic.exe now opens in its own application window. A separate browser is not required.
 
-You need Chrome, Brave, Chromium, or Edge.
+Run opencut-classic.msi for a normal install. opencut-classic.zip is the same app without an installer.
 
 This is a local Windows package of OpenCut Classic. We did not develop OpenCut.
 Original: https://github.com/opencut-app/opencut-classic
