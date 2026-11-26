@@ -34,9 +34,9 @@ Copy-Item $node (Join-Path $OutDir "node.exe")
 
 $bun = (Get-Command bun).Source
 $launcher = Join-Path $PSScriptRoot "..\src\launcher.ts"
-& $bun build $launcher --compile --outfile (Join-Path $OutDir "OpenCut.exe")
+& $bun build $launcher --compile --outfile (Join-Path $OutDir "opencut-classic.exe")
 if ($LASTEXITCODE -ne 0) {
-	throw "Failed to compile OpenCut.exe"
+	throw "Failed to compile opencut-classic.exe"
 }
 
-Write-Host "Packaged $(Join-Path $OutDir 'OpenCut.exe')"
+Write-Host "Packaged $(Join-Path $OutDir 'opencut-classic.exe')"

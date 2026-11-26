@@ -1,31 +1,87 @@
-import { spawn, type ChildProcess } from "node:child_process";
+import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { createWriteStream, existsSync, mkdirSync } from "node:fs";
 import { createConnection } from "node:net";
 import path from "node:path";
 
 const HOST = "127.0.0.1";
 const PORT = 4173;
+const APP_NAME = "opencut-classic.exe";
+
+type Browser = {
+	name: string;
+	executable: string;
+};
 
 function installDir(): string {
 	return path.dirname(process.execPath);
 }
 
-function findEdge(): string | null {
-	const roots = [
-		process.env["PROGRAMFILES(X86)"],
+function programRoots(): string[] {
+	return [
 		process.env.PROGRAMFILES,
+		process.env["PROGRAMFILES(X86)"],
 		process.env.LOCALAPPDATA,
 	].filter((value): value is string => Boolean(value));
+}
 
-	for (const root of roots) {
-		const candidate = path.join(
-			root,
-			"Microsoft",
-			"Edge",
-			"Application",
-			"msedge.exe",
-		);
+function firstExisting(candidates: string[]): string | null {
+	for (const candidate of candidates) {
 		if (existsSync(candidate)) return candidate;
+	}
+	return null;
+}
+
+function fromPath(command: string): string | null {
+	try {
+		const output = execFileSync("where.exe", [command], {
+			encoding: "utf8",
+			windowsHide: true,
+			stdio: ["ignore", "pipe", "ignore"],
+		});
+		const found = output
+			.split(/\r?\n/)
+			.map((line) => line.trim())
+			.find((line) => line.length > 0 && existsSync(line));
+		return found ?? null;
+	} catch {
+		return null;
+	}
+}
+
+function findBrowser(): Browser | null {
+	const roots = programRoots();
+	const browsers = [
+		{
+			name: "Google Chrome",
+			relative: ["Google", "Chrome", "Application", "chrome.exe"],
+			commands: ["chrome.exe", "chrome"],
+		},
+		{
+			name: "Brave",
+			relative: ["BraveSoftware", "Brave-Browser", "Application", "brave.exe"],
+			commands: ["brave.exe", "brave"],
+		},
+		{
+			name: "Chromium",
+			relative: ["Chromium", "Application", "chrome.exe"],
+			commands: ["chromium.exe", "chromium"],
+		},
+		{
+			name: "Microsoft Edge",
+			relative: ["Microsoft", "Edge", "Application", "msedge.exe"],
+			commands: ["msedge.exe", "msedge"],
+		},
+	];
+
+	for (const browser of browsers) {
+		const installed = firstExisting(
+			roots.map((root) => path.join(root, ...browser.relative)),
+		);
+		if (installed) return { name: browser.name, executable: installed };
+		for (const command of browser.commands) {
+			const onPath = fromPath(command);
+			if (onPath) return { name: browser.name, executable: onPath };
+		}
 	}
 	return null;
 }
@@ -40,7 +96,7 @@ function waitForPort(timeoutMs: number): Promise<void> {
 				if (Date.now() - started > timeoutMs) {
 					reject(
 						new Error(
-							`OpenCut did not start. See opencut.log next to OpenCut.exe.`,
+							`${APP_NAME} did not start. See opencut-classic.log next to the program.`,
 						),
 					);
 					return;
@@ -69,10 +125,12 @@ const root = installDir();
 const nodePath = path.join(root, "node.exe");
 const resources = path.join(root, "resources");
 const serverJs = path.join(resources, "apps", "web", "server.js");
-const logPath = path.join(root, "opencut.log");
+const logPath = path.join(root, "opencut-classic.log");
 
 if (!existsSync(nodePath) || !existsSync(serverJs)) {
-	console.error("OpenCut.exe must stay next to node.exe and the resources folder.");
+	console.error(
+		`${APP_NAME} must stay next to node.exe and the resources folder.`,
+	);
 	process.exit(1);
 }
 
@@ -102,13 +160,15 @@ server.stdout?.pipe(log);
 server.stderr?.pipe(log);
 server.on("exit", (code) => {
 	if (code && code !== 0) {
-		console.error(`OpenCut server exited with code ${code}. See ${logPath}`);
+		console.error(`The editor server exited with code ${code}. See ${logPath}`);
 	}
 });
 
-const edge = findEdge();
-if (!edge) {
-	console.error("Microsoft Edge is required to open the OpenCut window.");
+const browser = findBrowser();
+if (!browser) {
+	console.error(
+		"Install Chrome, Brave, Chromium, or Edge to open opencut-classic.",
+	);
 	stopProcess(server);
 	process.exit(1);
 }
@@ -123,13 +183,14 @@ try {
 
 const profile = path.join(
 	process.env.LOCALAPPDATA ?? root,
-	"OpenCut",
+	"opencut-classic",
 	"webview",
+	path.basename(browser.executable, ".exe"),
 );
 mkdirSync(profile, { recursive: true });
 
 const window = spawn(
-	edge,
+	browser.executable,
 	[
 		`--app=http://${HOST}:${PORT}/projects`,
 		`--user-data-dir=${profile}`,
