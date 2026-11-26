@@ -10,7 +10,7 @@
     <SummaryInformation Description="Local Windows package of OpenCut Classic. We did not develop OpenCut." />
     <MajorUpgrade DowngradeErrorMessage="A newer version of opencut-classic is already installed." />
     <MediaTemplate EmbedCab="yes" />
-    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    <WixVariable Id="WixUILicenseRtf" Value="installer\License.rtf" />
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
 
     <StandardDirectory Id="ProgramFiles64Folder">
