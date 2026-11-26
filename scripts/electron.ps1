@@ -14,7 +14,7 @@ try {
 		throw "Failed to install Electron"
 	}
 	npm pkg set "version=$version"
-	npx electron-builder --win zip msi --x64
+	npx electron-builder --win zip msi --x64 --publish never
 	if ($LASTEXITCODE -ne 0) {
 		throw "Failed to build the Electron app"
 	}

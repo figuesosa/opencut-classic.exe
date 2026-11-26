@@ -5,6 +5,10 @@
   "main": "main.js",
   "description": "Local Windows package of OpenCut Classic. We did not develop OpenCut.",
   "author": "figuesosa",
+  "devDependencies": {
+    "electron": "33.4.11",
+    "electron-builder": "25.1.8"
+  },
   "build": {
     "appId": "exe.opencut.classic",
     "productName": "opencut-classic",
